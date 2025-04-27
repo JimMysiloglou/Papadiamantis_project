@@ -70,8 +70,13 @@ def initiate_retrievers():
 
     return compression_retrievers
 
-def get_retrieved_documents(inputs, retrievers, source_type):
-    if not inputs.get("use_context", True):
+def get_retrieved_documents(inputs):
+
+    use_context = inputs.get("use_context")
+    retrievers = inputs.get("retrievers")
+    source_type = inputs.get("source_type")
+
+    if not use_context:
         return None
     if source_type != "all":
         retriever = retrievers.get(source_type)
