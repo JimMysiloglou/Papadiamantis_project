@@ -32,7 +32,7 @@ prompt_without_context = ChatPromptTemplate.from_messages([
 def context_exists(inputs: dict) -> bool:
     return bool(inputs.get("context"))
 
-def initiate_memory(k=3):
+def initiate_memory(k=10):
     memory = ConversationBufferWindowMemory(k=k, return_messages=True)
     return memory
 
