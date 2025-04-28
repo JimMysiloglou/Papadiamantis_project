@@ -1,48 +1,73 @@
 import streamlit as st
-from retriever import get_retrieved_documents
-from query import generate_response
+from retriever import initiate_retrievers
+from query import initiate_memory, generate_response
+import torch
 
-# Placeholder imports — make sure your functions use these selections
-# from your_project import generate_response, get_retrieved_documents
+torch.classes.__path__ = []
 
-# Set up Streamlit page
-st.set_page_config(page_title="Papadiamantis RAG", layout="wide")
+# --- Setup ---
+st.set_page_config(page_title="Papadiamantis RAG Explorer", layout="wide")
 st.title("📜 Papadiamantis RAG Explorer")
 
 # --- Sidebar Settings ---
 st.sidebar.header("🔧 Settings")
 
-# 1. LLM selection
 llm_model = st.sidebar.selectbox(
     "Select LLM Model",
-    ["GPT-4", "Gemini", "Meltemi", "Krikri"],
+    ["gpt-4", "mistral-7b", "llama-3", "phi-2"],
     index=0
 )
 
-# 2. Source type selection
-source_type = st.sidebar.radio("Choose content type", ["All", "Short Stories", "Novels", "Articles", "Poems", "None"])
+source_type = st.sidebar.radio("Select Source", ["all", "stories", "novels", "articles", "poems"])
+use_context = st.sidebar.checkbox("Use retrieved context", value=True)
+temperature = st.sidebar.slider("Temperature", 0.0, 1.5, 0.7, 0.1)
 
-# 3. Temperature slider
-temperature = st.sidebar.slider("Generation temperature", 0.0, 1.5, 0.7, 0.1)
+# --- Session State Initialization ---
+if "retrievers" not in st.session_state:
+    st.session_state["retrievers"] = initiate_retrievers()
 
-# --- Main Area ---
-query = st.text_input("Ask a question or request a story:")
+if "memory" not in st.session_state:
+    st.session_state["memory"] = initiate_memory()
 
-if query:
-    with st.spinner(f"Using {llm_model} to retrieve and generate..."):
-        result = generate_response(
-            query=query,
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+# Reset Conversation Button
+if st.sidebar.button("🧹 New Conversation"):
+    st.session_state.messages = []
+    st.session_state.memory = initiate_memory()
+    st.rerun()
+
+# Display previous chat messages
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+# Chat input
+user_input = st.chat_input("Ask something the model ✍️")
+
+if user_input:
+
+    # Add user message to history
+    st.session_state.messages.append({"role": "user", "content": user_input})
+
+    with st.chat_message("user"):
+        st.markdown(user_input)
+
+    # Generate assistant reply
+    with st.spinner("Thinking..."):
+        response = generate_response(
+            query=user_input,
+            use_context=use_context,
+            retrievers=st.session_state["retrievers"],
             source_type=source_type,
-            temperature=temperature,
-            llm=llm_model  # Make sure your backend handles this
+            memory=st.session_state["memory"],
+            model=llm_model,
+            temperature=temperature
         )
-        retrieved = get_retrieved_documents(query, source_type)
 
-    st.subheader("📝 Generated Output")
-    st.write(result)
-
-    with st.expander("📚 Retrieved Contexts"):
-        for doc in retrieved:
-            st.markdown(f"**{doc['source']}**: {doc['content']}")
-
-    st.download_button("📥 Download result", result, file_name="papadiamantis_output.txt")
+    # Add assistant message
+    st.session_state.messages.append({"role": "assistant", "content": response})
+        
+    with st.chat_message("assistant"):
+        st.markdown(response)

@@ -42,7 +42,10 @@ def generate_response(query, use_context, retrievers, source_type, memory, model
     # Output parser
     output_parser = StrOutputParser()
 
-    llm = ChatOpenAI(model=model, temperature=temperature, api_key=os.getenv("OPENAI_API_KEY"))
+    if model.startswith("gpt"):
+        llm = ChatOpenAI(model=model, temperature=temperature, api_key=os.getenv("OPENAI_API_KEY"))
+    else:
+        raise NotImplemented
 
     # Choose prompt based on context presence
     dynamic_prompt = RunnableBranch(
