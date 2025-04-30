@@ -19,6 +19,7 @@ def connect_client(weaviate_url, weaviate_api_key):
     weaviate_client = weaviate.connect_to_weaviate_cloud(
         cluster_url=weaviate_url,
         auth_credentials=Auth.api_key(weaviate_api_key),
+        skip_init_checks=True,
     )
     print('Client status:', weaviate_client.is_ready())
     return weaviate_client

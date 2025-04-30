@@ -5,6 +5,12 @@ import torch
 
 torch.classes.__path__ = []
 
+llm_display_names = {
+    "ChatGPT 4.1": "gpt-4",
+    "ChatGPT 4.1 nano": "gpt-4o-mini"
+}
+
+
 # --- Setup ---
 st.set_page_config(page_title="Papadiamantis RAG Explorer", layout="wide")
 st.title("📜 Papadiamantis RAG Explorer")
@@ -25,50 +31,33 @@ if st.sidebar.button("🧹 New Conversation"):
     st.session_state.memory = initiate_memory()
     st.rerun()
 
-# Sidebar: Conversation History
-st.sidebar.subheader("🕰️ Conversation History")
-
-# Extract only user questions
-user_questions = list(dict.fromkeys(
-    m["content"] for m in reversed(st.session_state.messages) if m["role"] == "user"
-))
-
-selected_question = st.sidebar.selectbox(
-    "Pick a previous question to re-ask:",
-    options=user_questions,
-    index=None,
-    placeholder="Select a previous question..."
-) if user_questions else None
-
 # Sidebar:(outside the form!)
 st.sidebar.divider()
 
 # --- Sidebar Settings ---
 with st.sidebar.form(key="settings_form"):
     st.sidebar.header("🔧 Settings")
-
     llm_model = st.sidebar.selectbox(
         "Select LLM Model",
-        ["gpt-4", "mistral-7b", "llama-3", "phi-2"],
-        index=0
+        list(llm_display_names.keys()),
+        index=1
     )
-
     source_type = st.sidebar.radio("Select Source", ["all", "stories", "novels", "articles", "poems"])
-    use_context = st.sidebar.checkbox("Use retrieved context", value=True)
+    use_context = st.sidebar.checkbox("Use retrieved context", value=False)
     temperature = st.sidebar.slider("Temperature", 0.0, 1.5, 0.7, 0.1)
+
+st.sidebar.divider()
+
+if st.session_state.messages:
+        full_chat = "\n\n".join(f"{m['role'].upper()}: {m['content']}" for m in st.session_state.messages)
+        st.download_button("📥 Download Conversation", full_chat, file_name="papadiamantis_chat.txt")
 
 # Display previous chat messages
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-typed_input = st.chat_input("Ask something to Papadiamantis ✍️")
-
-user_input = None
-if typed_input:
-    user_input = typed_input
-elif selected_question:
-    user_input = selected_question
+user_input = st.chat_input("Ask something to Papadiamantis ✍️")
 
 if user_input:
     st.session_state.messages.append({"role": "user", "content": user_input})
@@ -83,7 +72,7 @@ if user_input:
             retrievers=st.session_state["retrievers"],
             source_type=source_type,
             memory=st.session_state["memory"],
-            model=llm_model,
+            model=llm_display_names[llm_model],
             temperature=temperature
         )
 
