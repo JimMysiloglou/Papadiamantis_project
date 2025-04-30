@@ -65,7 +65,7 @@ def initiate_retrievers():
 
     compression_retrievers = {}
     for type in text_types:
-        base_retriever = create_base_retriever(db, search_type='mmr', tenant=type, k=10)
+        base_retriever = create_base_retriever(db, tenant=type, k=10)
         compression_retrievers[type] = create_compression_retriever(base_retriever, compressor)
         print(f'Compression retriever created for {type}')
 

@@ -88,7 +88,7 @@ if user_input:
         st.markdown(user_input)
 
     with st.spinner("Thinking..."):
-        response = generate_response(
+        response, retrieved_context = generate_response(
             query=user_input,
             use_context=st.session_state.use_context,
             retrievers=st.session_state["retrievers"],
@@ -102,3 +102,7 @@ if user_input:
 
     with st.chat_message("assistant"):
         st.markdown(response)
+
+    if retrieved_context:
+        with st.expander("📚 Retrieved Context Used"):
+            st.markdown(f"```text\n{retrieved_context}\n```")

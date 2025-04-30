@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.runnables import RunnableBranch, RunnableLambda
+from langchain_core.runnables import RunnableBranch
 from langchain_core.output_parsers import StrOutputParser
 from langchain.memory import ConversationBufferWindowMemory
 from langchain_openai import ChatOpenAI
@@ -45,24 +45,35 @@ def generate_response(query, use_context, retrievers, source_type, memory, model
     if model.startswith("gpt"):
         llm = ChatOpenAI(model=model, temperature=temperature, api_key=os.getenv("OPENAI_API_KEY"))
     else:
-        raise NotImplemented
+        raise NotImplementedError("Only OpenAI models are currently supported.")
 
-    # Choose prompt based on context presence
+    # Select prompt based on whether context exists
     dynamic_prompt = RunnableBranch(
-    (context_exists, prompt_with_context),
-    prompt_without_context
+        (context_exists, prompt_with_context),
+        prompt_without_context
     )
-    
-    chain = (
-    {
-        "question": lambda x: x["question"],
-        "context": RunnableLambda(get_retrieved_documents),
-        "history": lambda x: memory.load_memory_variables({})["history"]
+
+    # Fetch context if enabled
+    context = ""
+    if use_context:
+        context = get_retrieved_documents({
+            "question": query,
+            "use_context": use_context,
+            "retrievers": retrievers,
+            "source_type": source_type
+        })
+
+    # Prepare input for the chain
+    inputs = {
+        "question": query,
+        "context": context,
+        "history": memory.load_memory_variables({})["history"]
     }
-    | dynamic_prompt
-    | llm
-    | output_parser
-    )
-    
-    response = chain.invoke({'question': query, 'use_context': use_context, 'retrievers': retrievers, 'source_type':source_type})
-    return response
+
+    # Compose the chain
+    chain = dynamic_prompt | llm | output_parser
+
+    # Invoke chain with precomputed inputs
+    response = chain.invoke(inputs)
+
+    return response, context
