@@ -5,6 +5,18 @@ import torch
 
 torch.classes.__path__ = []
 
+def prepare_download():
+    lines = []
+    for m in st.session_state.messages:
+        role = m["role"].upper()
+        text = m["content"]
+        if m["role"] == "assistant" and "context_used" in m:
+            tag = "[context used]" if m["context_used"] else "[no context]"
+            text += f"\n\n{tag}"
+        lines.append(f"{role}: {text}")
+    conversation = "\n\n".join(lines)
+    return conversation
+
 llm_display_names = {
     "ChatGPT 4.1": "gpt-4",
     "ChatGPT 4.1 nano": "gpt-4o-mini"
@@ -32,7 +44,7 @@ if st.sidebar.button("🧹 New Conversation"):
 
 
 if st.sidebar.button("Prepare download"):
-    conversation = full_chat = "\n\n".join(f"{m['role'].upper()}: {m['content']}" for m in st.session_state.messages)
+    conversation = prepare_download()
     st.download_button(
         label="📥 Download Conversation",
         data=conversation,
@@ -98,7 +110,11 @@ if user_input:
             temperature=st.session_state.temperature
         )
 
-    st.session_state.messages.append({"role": "assistant", "content": response})
+    st.session_state.messages.append({
+    "role": "assistant",
+    "content": response,
+    "context_used": bool(retrieved_context)
+    })
 
     with st.chat_message("assistant"):
         st.markdown(response)
@@ -106,3 +122,4 @@ if user_input:
     if retrieved_context:
         with st.expander("📚 Retrieved Context Used"):
             st.markdown(f"```text\n{retrieved_context}\n```")
+    st.caption("Context: " + ("used" if retrieved_context else "not used"))
