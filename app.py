@@ -34,6 +34,17 @@ if st.sidebar.button("🧹 New Conversation"):
 # Sidebar:(outside the form!)
 st.sidebar.divider()
 
+
+if st.sidebar.button("Prepare download"):
+    conversation = full_chat = "\n\n".join(f"{m['role'].upper()}: {m['content']}" for m in st.session_state.messages)
+    st.download_button(
+        label="📥 Download Conversation",
+        data=conversation,
+        file_name="papadiamantis_chat.txt",
+        on_click="ignore",
+        type="primary"
+    )
+
 # --- Sidebar Settings ---
 with st.sidebar.form(key="settings_form"):
     st.sidebar.header("🔧 Settings")
@@ -47,10 +58,6 @@ with st.sidebar.form(key="settings_form"):
     temperature = st.sidebar.slider("Temperature", 0.0, 1.5, 0.7, 0.1)
 
 st.sidebar.divider()
-
-if st.session_state.messages:
-        full_chat = "\n\n".join(f"{m['role'].upper()}: {m['content']}" for m in st.session_state.messages)
-        st.download_button("📥 Download Conversation", full_chat, file_name="papadiamantis_chat.txt")
 
 # Display previous chat messages
 for message in st.session_state.messages:
