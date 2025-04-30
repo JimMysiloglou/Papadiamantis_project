@@ -10,10 +10,9 @@ def prepare_download():
     for m in st.session_state.messages:
         role = m["role"].upper()
         text = m["content"]
-        if m["role"] == "assistant" and "context_used" in m:
-            tag = "[context used]" if m["context_used"] else "[no context]"
-            text += f"\n\n{tag}"
-        lines.append(f"{role}: {text}")
+        lines.append(f"{role}:\n{text}")
+        if role == "ASSISTANT" and "settings" in m:
+            lines.append(m["settings"])
     conversation = "\n\n".join(lines)
     return conversation
 
@@ -109,11 +108,21 @@ if user_input:
             model=llm_display_names[st.session_state.llm_model],
             temperature=st.session_state.temperature
         )
+    
+    # Build settings log
+    settings_log = f"""
+    🔧 Settings used:
+    - Model: {st.session_state.llm_model}
+    - Temperature: {st.session_state.temperature}
+    - Source Type: {st.session_state.source_type}
+    - Context: {"used" if retrieved_context else "not used"}
+    """.strip()
 
+    # Store response and settings together
     st.session_state.messages.append({
-    "role": "assistant",
-    "content": response,
-    "context_used": bool(retrieved_context)
+        "role": "assistant",
+        "content": response,
+        "settings": settings_log
     })
 
     with st.chat_message("assistant"):
