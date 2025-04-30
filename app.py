@@ -18,7 +18,8 @@ def prepare_download():
 
 llm_display_names = {
     "ChatGPT 4.1": "gpt-4",
-    "ChatGPT 4.1 nano": "gpt-4o-mini"
+    "ChatGPT 4.1 nano": "gpt-4o-mini",
+    "Gemini 2.0 flash": "gemini-2.0-flash"
 }
 
 # --- Setup ---

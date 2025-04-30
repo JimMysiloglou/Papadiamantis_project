@@ -3,6 +3,7 @@ from langchain_core.runnables import RunnableBranch
 from langchain_core.output_parsers import StrOutputParser
 from langchain.memory import ConversationBufferWindowMemory
 from langchain_openai import ChatOpenAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 from retriever import get_retrieved_documents
 import streamlit as st
 
@@ -34,9 +35,21 @@ def generate_response(query, use_context, retrievers, source_type, memory, model
     output_parser = StrOutputParser()
 
     if model.startswith("gpt"):
-        llm = ChatOpenAI(model=model, temperature=temperature, api_key=st.secrets["OPENAI_API_KEY"])
+        llm = ChatOpenAI(model=model,
+                         temperature=temperature,
+                         api_key=st.secrets["OPENAI_API_KEY"], 
+                         max_tokens=None,
+                         timeout=None,
+                         max_retries=2)
+    elif model.startswith("gemini"):
+        llm = ChatGoogleGenerativeAI(model=model,
+                                     temperature=temperature,
+                                     api_key=st.secrets["GOOGLE_API_KEY"],
+                                     max_tokens=None,
+                                     timeout=None,
+                                     max_retries=2)
     else:
-        raise NotImplementedError("Only OpenAI models are currently supported.")
+        raise NotImplementedError("Not implemented yet.")
 
     # Select prompt based on whether context exists
     dynamic_prompt = RunnableBranch(
