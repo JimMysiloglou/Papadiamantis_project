@@ -10,7 +10,6 @@ llm_display_names = {
     "ChatGPT 4.1 nano": "gpt-4o-mini"
 }
 
-
 # --- Setup ---
 st.set_page_config(page_title="Papadiamantis RAG Explorer", layout="wide")
 st.title("📜 Papadiamantis RAG Explorer")
@@ -31,9 +30,6 @@ if st.sidebar.button("🧹 New Conversation"):
     st.session_state.memory = initiate_memory()
     st.rerun()
 
-# Sidebar:(outside the form!)
-st.sidebar.divider()
-
 
 if st.sidebar.button("Prepare download"):
     conversation = full_chat = "\n\n".join(f"{m['role'].upper()}: {m['content']}" for m in st.session_state.messages)
@@ -47,17 +43,36 @@ if st.sidebar.button("Prepare download"):
 
 # --- Sidebar Settings ---
 with st.sidebar.form(key="settings_form"):
-    st.sidebar.header("🔧 Settings")
-    llm_model = st.sidebar.selectbox(
+    st.header("🔧 Settings")
+
+    # Only set defaults if not already defined
+    st.session_state.setdefault("llm_model", "ChatGPT 4.1 nano")
+    st.session_state.setdefault("source_type", "all")
+    st.session_state.setdefault("use_context", False)
+    st.session_state.setdefault("temperature", 0.7)
+
+    st.selectbox(
         "Select LLM Model",
         list(llm_display_names.keys()),
-        index=1
+        key="llm_model"
     )
-    source_type = st.sidebar.radio("Select Source", ["all", "stories", "novels", "articles", "poems"])
-    use_context = st.sidebar.checkbox("Use retrieved context", value=False)
-    temperature = st.sidebar.slider("Temperature", 0.0, 1.5, 0.7, 0.1)
 
-st.sidebar.divider()
+    st.radio(
+        "Select Source",
+        ["all", "stories", "novels", "articles", "poems"],
+        key="source_type"
+    )
+
+    st.checkbox(
+        "Use retrieved context",
+        key="use_context"
+    )
+
+    st.slider(
+        "Temperature", 0.0, 1.5, step=0.1, key="temperature"
+    )
+
+    st.form_submit_button("Apply Settings")
 
 # Display previous chat messages
 for message in st.session_state.messages:
@@ -75,12 +90,12 @@ if user_input:
     with st.spinner("Thinking..."):
         response = generate_response(
             query=user_input,
-            use_context=use_context,
+            use_context=st.session_state.use_context,
             retrievers=st.session_state["retrievers"],
-            source_type=source_type,
+            source_type=st.session_state.source_type,
             memory=st.session_state["memory"],
-            model=llm_display_names[llm_model],
-            temperature=temperature
+            model=llm_display_names[st.session_state.llm_model],
+            temperature=st.session_state.temperature
         )
 
     st.session_state.messages.append({"role": "assistant", "content": response})
