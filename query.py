@@ -7,26 +7,7 @@ from langchain.memory import ConversationBufferWindowMemory
 from langchain_openai import ChatOpenAI
 from retriever import get_retrieved_documents
 
-
-
 load_dotenv()
-
-contextualize_instructions = "Χρησιμοποίησε τα παρακάτω αποσπάσματα κειμένου ως παράδειγμα:\n\n {context}."
-
-prompt_with_context = ChatPromptTemplate.from_messages(
-    [
-        ("system", "Είσαι ένα συγγραφέας."),
-        MessagesPlaceholder(variable_name="history", optional=True),
-        ("user", "{question}"),
-        ("system", contextualize_instructions)
-    ]
-)
-
-prompt_without_context = ChatPromptTemplate.from_messages([
-    ("system", "Είσαι ένα συγγραφέας."),
-    MessagesPlaceholder(variable_name="history", optional=True),
-    ("user", "{question}")
-])
 
 # Function to check if context exists
 def context_exists(inputs: dict) -> bool:
@@ -36,8 +17,21 @@ def initiate_memory(k=10):
     memory = ConversationBufferWindowMemory(k=k, return_messages=True)
     return memory
 
+def generate_response(query, use_context, retrievers, source_type, memory, model, temperature, system_prompt, contextualize_instructions):
 
-def generate_response(query, use_context, retrievers, source_type, memory, model, temperature):
+    prompt_with_context = ChatPromptTemplate.from_messages(
+    [
+        ("system", system_prompt),
+        MessagesPlaceholder(variable_name="history", optional=True),
+        ("user", "{question}"),
+        ("system", contextualize_instructions + "\n\n{context}")
+    ])
+
+    prompt_without_context = ChatPromptTemplate.from_messages([
+    ("system", system_prompt),
+    MessagesPlaceholder(variable_name="history", optional=True),
+    ("user", "{question}")
+    ])
     
     # Output parser
     output_parser = StrOutputParser()

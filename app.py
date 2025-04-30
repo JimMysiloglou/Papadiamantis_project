@@ -61,6 +61,8 @@ with st.sidebar.form(key="settings_form"):
     st.session_state.setdefault("source_type", "all")
     st.session_state.setdefault("use_context", False)
     st.session_state.setdefault("temperature", 0.7)
+    st.session_state.setdefault("system_prompt", "Είσαι ένα συγγραφέας.")
+    st.session_state.setdefault("contextualize_instructions", "Χρησιμοποίησε τα παρακάτω αποσπάσματα κειμένου ως παράδειγμα:")
 
     st.selectbox(
         "Select LLM Model",
@@ -81,6 +83,16 @@ with st.sidebar.form(key="settings_form"):
 
     st.slider(
         "Temperature", 0.0, 1.5, step=0.1, key="temperature"
+    )
+
+    system_prompt = st.text_area(
+    "System Prompt (contextual role for the assistant)",
+    key="system_prompt"
+    )
+
+    contextualize_instructions = st.text_area(
+    "Contextualization Instructions (for RAG)",
+    key="contextualize_instructions"
     )
 
     st.form_submit_button("Apply Settings")
@@ -106,7 +118,9 @@ if user_input:
             source_type=st.session_state.source_type,
             memory=st.session_state["memory"],
             model=llm_display_names[st.session_state.llm_model],
-            temperature=st.session_state.temperature
+            temperature=st.session_state.temperature,
+            system_prompt=st.session_state.system_prompt,
+            contextualize_instructions=st.session_state.contextualize_instructions
         )
     
     # Build settings log
@@ -116,6 +130,8 @@ if user_input:
     - Temperature: {st.session_state.temperature}
     - Source Type: {st.session_state.source_type}
     - Context: {"used" if retrieved_context else "not used"}
+    - System Prompt: "{st.session_state.system_prompt}"
+    - Contextualization: "{st.session_state.contextualize_instructions}"
     """.strip()
 
     # Store response and settings together
