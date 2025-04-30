@@ -1,18 +1,14 @@
-import os
-from dotenv import load_dotenv
 import weaviate
 from weaviate.classes.init import Auth
 from langchain_weaviate.vectorstores import WeaviateVectorStore
 from langchain_huggingface.embeddings import HuggingFaceEmbeddings
 from langchain.retrievers.contextual_compression import ContextualCompressionRetriever
 from langchain_community.document_compressors.rankllm_rerank import RankLLMRerank
-
-load_dotenv()
-
+import streamlit as st
 
 # Best practice: store your credentials in environment variables
-weaviate_url = os.getenv("WEAVIATE_URL")
-weaviate_api_key = os.getenv("WEAVIATE_API_KEY")
+weaviate_url = st.secrets["WEAVIATE_URL"]
+weaviate_api_key = st.secrets["WEAVIATE_API_KEY"]
 
 def connect_client(weaviate_url, weaviate_api_key):
     # Connect to Weaviate Cloud

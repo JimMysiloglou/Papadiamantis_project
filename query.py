@@ -1,13 +1,10 @@
-import os
-from dotenv import load_dotenv
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables import RunnableBranch
 from langchain_core.output_parsers import StrOutputParser
 from langchain.memory import ConversationBufferWindowMemory
 from langchain_openai import ChatOpenAI
 from retriever import get_retrieved_documents
-
-load_dotenv()
+import streamlit as st
 
 # Function to check if context exists
 def context_exists(inputs: dict) -> bool:
@@ -37,7 +34,7 @@ def generate_response(query, use_context, retrievers, source_type, memory, model
     output_parser = StrOutputParser()
 
     if model.startswith("gpt"):
-        llm = ChatOpenAI(model=model, temperature=temperature, api_key=os.getenv("OPENAI_API_KEY"))
+        llm = ChatOpenAI(model=model, temperature=temperature, api_key=st.secrets["OPENAI_API_KEY"])
     else:
         raise NotImplementedError("Only OpenAI models are currently supported.")
 
