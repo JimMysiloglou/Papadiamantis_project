@@ -19,7 +19,9 @@ def prepare_download():
 llm_display_names = {
     "ChatGPT 4.1": "gpt-4",
     "ChatGPT 4.1 nano": "gpt-4o-mini",
-    "Gemini 2.0 flash": "gemini-2.0-flash"
+    "Gemini 2.0 flash": "gemini-2.0-flash",
+    "Meltemi 7B": "https://ly8k72fbefhixvza.eu-west-1.aws.endpoints.huggingface.cloud",
+    "Krikri 8B": "https://gxiojggyt022aqyt.eu-west-1.aws.endpoints.huggingface.cloud"
 }
 
 # --- Setup ---

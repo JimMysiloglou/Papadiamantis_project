@@ -4,6 +4,7 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain.memory import ConversationBufferWindowMemory
 from langchain_openai import ChatOpenAI
 from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_huggingface import ChatHuggingFace, HuggingFaceEndpoint
 from retriever import get_retrieved_documents
 import streamlit as st
 
@@ -49,7 +50,14 @@ def generate_response(query, use_context, retrievers, source_type, memory, model
                                      timeout=None,
                                      max_retries=2)
     else:
-        raise NotImplementedError("Not implemented yet.")
+        endpoint = HuggingFaceEndpoint(
+            endpoint_url=model,
+            task="text-generation",
+            max_tokens=None,
+            temperature=temperature,
+            huggingfacehub_api_token=st.secrets["HF_TOKEN"]
+        )
+        llm = ChatHuggingFace(llm=endpoint)
 
     # Select prompt based on whether context exists
     dynamic_prompt = RunnableBranch(
