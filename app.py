@@ -1,5 +1,5 @@
 import streamlit as st
-from retriever import initiate_retrievers
+from retriever import get_retrievers
 from query import initiate_memory, generate_response
 import torch
 
@@ -30,7 +30,7 @@ st.title("📜 Papadiamantis RAG Explorer")
 
 # --- Session State Initialization ---
 if "retrievers" not in st.session_state:
-    st.session_state["retrievers"] = initiate_retrievers()
+    st.session_state["retrievers"] = get_retrievers()
 
 if "memory" not in st.session_state:
     st.session_state["memory"] = initiate_memory()

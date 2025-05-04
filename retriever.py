@@ -10,20 +10,22 @@ import streamlit as st
 weaviate_url = st.secrets["WEAVIATE_URL"]
 weaviate_api_key = st.secrets["WEAVIATE_API_KEY"]
 
+@st.cache_resource
 def connect_client(weaviate_url, weaviate_api_key):
     # Connect to Weaviate Cloud
-    weaviate_client = weaviate.connect_to_weaviate_cloud(
-        cluster_url=weaviate_url,
-        auth_credentials=Auth.api_key(weaviate_api_key),
+    return weaviate.connect_to_weaviate_cloud(
+        cluster_url=st.secrets["WEAVIATE_URL"],
+        auth_credentials=Auth.api_key(st.secrets["WEAVIATE_API_KEY"]),
         skip_init_checks=True,
     )
-    print('Client status:', weaviate_client.is_ready())
-    return weaviate_client
 
+@st.cache_resource
 def create_embeddings(model='BAAI/bge-m3'):
-    embeddings = HuggingFaceEmbeddings(model_name=model)
-    print("Embedding function created.")
-    return embeddings
+    return HuggingFaceEmbeddings(model_name=model)
+
+@st.cache_resource
+def connect_client_cached():
+    return connect_client(st.secrets["WEAVIATE_URL"], st.secrets["WEAVIATE_API_KEY"])
 
 def create_vectorstore(client, embeddings, index_name):
     vectorstore = WeaviateVectorStore(client=client, embedding=embeddings,
@@ -45,7 +47,7 @@ def format_context(documents):
     return "\n\n".join(formated_documents)
 
 def initiate_retrievers():
-    weaviate_client = connect_client(weaviate_url, weaviate_api_key)
+    weaviate_client = connect_client_cached()
     embeddings = create_embeddings()
     
 
@@ -66,6 +68,10 @@ def initiate_retrievers():
         print(f'Compression retriever created for {type}')
 
     return compression_retrievers
+
+@st.cache_resource
+def get_retrievers():
+    return initiate_retrievers()
 
 def get_retrieved_documents(inputs):
 

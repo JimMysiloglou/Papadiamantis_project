@@ -12,6 +12,7 @@ import streamlit as st
 def context_exists(inputs: dict) -> bool:
     return bool(inputs.get("context"))
 
+@st.cache_resource
 def initiate_memory(k=10):
     memory = ConversationBufferWindowMemory(k=k, return_messages=True)
     return memory
