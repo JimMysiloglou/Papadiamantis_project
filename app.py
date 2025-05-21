@@ -73,11 +73,12 @@ with st.sidebar.form(key="settings_form"):
         key="llm_model"
     )
 
-    selected_sources = st.multiselect(
+    selected_sources = st.pills(
         "Select Source Types (multiple allowed)",
         options=source_options,
         default=st.session_state.get("source_type", []),
-        key="source_type"
+        key="source_type",
+        selection_mode="multi"
     )
 
     st.checkbox(
