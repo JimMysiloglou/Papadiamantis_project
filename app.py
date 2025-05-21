@@ -18,11 +18,12 @@ def prepare_download():
 
 llm_display_names = {
     "ChatGPT 4.1": "gpt-4",
-    "ChatGPT 4.1 nano": "gpt-4o-mini",
     "Gemini 2.0 flash": "gemini-2.0-flash",
     "Meltemi 7B": "https://ly8k72fbefhixvza.eu-west-1.aws.endpoints.huggingface.cloud",
     "Krikri 8B": "https://gxiojggyt022aqyt.eu-west-1.aws.endpoints.huggingface.cloud"
 }
+
+source_options = ["stories", "novels", "articles", "poems"]
 
 # --- Setup ---
 st.set_page_config(page_title="Papadiamantis RAG Explorer", layout="wide")
@@ -60,10 +61,9 @@ with st.sidebar.form(key="settings_form"):
     st.header("🔧 Settings")
 
     # Only set defaults if not already defined
-    st.session_state.setdefault("llm_model", "ChatGPT 4.1 nano")
-    st.session_state.setdefault("source_type", "all")
+    st.session_state.setdefault("llm_model", "ChatGPT 4.1")
     st.session_state.setdefault("use_context", False)
-    st.session_state.setdefault("temperature", 0.7)
+    st.session_state.setdefault("temperature", 0.5)
     st.session_state.setdefault("system_prompt", "Είσαι ένα συγγραφέας.")
     st.session_state.setdefault("contextualize_instructions", "Χρησιμοποίησε τα παρακάτω αποσπάσματα κειμένου ως παράδειγμα:")
 
@@ -73,9 +73,10 @@ with st.sidebar.form(key="settings_form"):
         key="llm_model"
     )
 
-    st.radio(
-        "Select Source",
-        ["all", "stories", "novels", "articles", "poems"],
+    selected_sources = st.multiselect(
+        "Select Source Types (multiple allowed)",
+        options=source_options,
+        default=st.session_state.get("source_type", []),
         key="source_type"
     )
 
@@ -85,7 +86,7 @@ with st.sidebar.form(key="settings_form"):
     )
 
     st.slider(
-        "Temperature", 0.0, 1.5, step=0.1, key="temperature"
+        "Temperature", 0.0, 1.0, step=0.1, key="temperature"
     )
 
     system_prompt = st.text_area(
@@ -136,7 +137,7 @@ if user_input:
     - System Prompt: "{st.session_state.system_prompt}"
     - Contextualization: "{st.session_state.contextualize_instructions}"
     """.strip()
-
+    
     # Store response and settings together
     st.session_state.messages.append({
         "role": "assistant",

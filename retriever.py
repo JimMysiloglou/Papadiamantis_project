@@ -43,8 +43,7 @@ def create_compression_retriever(base_retriever, compressor):
     return compression_retriever
 
 def format_context(documents):
-    formated_documents = [f"Τίτλος: {doc.metadata['title']}\n{doc.page_content}" for doc in documents]
-    return "\n\n".join(formated_documents)
+    return "\n\n".join(doc.page_content for doc in documents)
 
 def initiate_retrievers():
     weaviate_client = connect_client_cached()
@@ -76,18 +75,23 @@ def get_retrievers():
 def get_retrieved_documents(inputs):
 
     use_context = inputs.get("use_context")
-    retrievers = inputs.get("retrievers")
-    source_type = inputs.get("source_type")
+    retrievers = inputs.get("retrievers", {})
+    source_type = inputs.get("source_type", [])
+    question = inputs.get("question")
 
-    if not use_context:
+    if not use_context or not source_type:
         return None
-    if source_type != "all":
-        retriever = retrievers.get(source_type)
-        docs = retriever.invoke(inputs["question"])
-        return format_context(docs)
-    else:
-        results = []
-        for _, retriever in retrievers.items():
-            docs = retriever.invoke(inputs["question"])
-            results.append(docs[0])
-        return format_context(results)
+    
+    if not question:
+        raise ValueError("No question provided in inputs.")
+    
+    results = []
+    for key in source_type:
+        retriever = retrievers.get(key)
+        if retriever is None:
+            raise ValueError(f"Invalid source_type: {key}")
+        docs = retriever.invoke(question)
+        if docs:
+            results.extend(docs)
+
+    return format_context(results)
