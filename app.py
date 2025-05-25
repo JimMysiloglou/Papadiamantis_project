@@ -7,14 +7,40 @@ torch.classes.__path__ = []
 
 def prepare_download():
     lines = []
-    for m in st.session_state.messages:
-        role = m["role"].upper()
-        text = m["content"]
-        lines.append(f"{role}:\n{text}")
-        if role == "ASSISTANT" and "settings" in m:
-            lines.append(m["settings"])
-    conversation = "\n\n".join(lines)
-    return conversation
+    counter = 1
+    data = st.session_state.messages
+    
+    i = 0
+    while i < len(data):
+        if data[i]['role'] == 'user' and data[i+1]['role'] == 'assistant':
+            user_text = data[i]['content'].strip()
+            assistant_text = data[i+1]['content'].strip()
+            settings = data[i+1]['settings']
+
+            block = [f"{counter}. ________________________________________________"]
+            block.append("🔧 Settings used:")
+            block.append(f"    - Model: {settings['model']}")
+            block.append(f"    - Temperature: {settings['temperature']}")
+            block.append(f"    - Source Type: {settings['source_type']}")
+            block.append(f"    - Context: {settings['context']}")
+            if settings['system_prompt']:
+                block.append(f"\nSYSTEM PROMPT:\n\"{settings['system_prompt']}\"")
+
+            block.append(f"\nUSER:\n\"{user_text}\"")
+
+            if settings['contextualization']:
+                block.append(f"\nCONTEXTUALIZATION:\n\"{settings['contextualization']}\"")
+
+            block.append(f"\nASSISTANT:\n\"{assistant_text}\"")
+            block.append("______________________________________________________\n")
+
+            lines.append("\n".join(block))
+            counter += 1
+            i += 2
+        else:
+            i+= 1
+
+    return "\n\n".join(lines)
 
 llm_display_names = {
     "ChatGPT 4.1": "gpt-4",
@@ -64,8 +90,8 @@ with st.sidebar.form(key="settings_form"):
     st.session_state.setdefault("llm_model", "ChatGPT 4.1")
     st.session_state.setdefault("use_context", False)
     st.session_state.setdefault("temperature", 0.5)
-    st.session_state.setdefault("system_prompt", "Είσαι ένα συγγραφέας.")
-    st.session_state.setdefault("contextualize_instructions", "Χρησιμοποίησε τα παρακάτω αποσπάσματα κειμένου ως παράδειγμα:")
+    st.session_state.setdefault("system_prompt", "")
+    st.session_state.setdefault("contextualize_instructions", "")
 
     st.selectbox(
         "Select LLM Model",
@@ -129,15 +155,14 @@ if user_input:
         )
     
     # Build settings log
-    settings_log = f"""
-    🔧 Settings used:
-    - Model: {st.session_state.llm_model}
-    - Temperature: {st.session_state.temperature}
-    - Source Type: {st.session_state.source_type}
-    - Context: {"used" if retrieved_context else "not used"}
-    - System Prompt: "{st.session_state.system_prompt}"
-    - Contextualization: "{st.session_state.contextualize_instructions}"
-    """.strip()
+    settings_log = {
+    "model": st.session_state.llm_model,
+    "temperature": st.session_state.temperature,
+    "source_type": st.session_state.source_type,
+    "context": bool(retrieved_context),
+    "system_prompt": st.session_state.system_prompt.strip(),
+    "contextualization": st.session_state.contextualize_instructions.strip()
+    }
     
     # Store response and settings together
     st.session_state.messages.append({
