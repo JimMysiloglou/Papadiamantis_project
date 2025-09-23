@@ -16,7 +16,7 @@
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/papadiamantis-rag-explorer.git
+git clone https://github.com/JimMysiloglou/papadiamantis-rag-explorer.git
 cd papadiamantis-rag-explorer
 ```
 
