@@ -43,9 +43,8 @@ def prepare_download():
     return "\n\n".join(lines)
 
 llm_display_names = {
-    "ChatGPT 4.1": "gpt-4",
-    "Gemini 2.0 flash": "gemini-2.0-flash",
-    "Meltemi 7B": "https://ly8k72fbefhixvza.eu-west-1.aws.endpoints.huggingface.cloud",
+    "ChatGPT 5": "gpt-5-2025-08-07",
+    "Gemini 2.5 flash": "gemini-2.5-flash",
     "Krikri 8B": "https://gxiojggyt022aqyt.eu-west-1.aws.endpoints.huggingface.cloud"
 }
 
