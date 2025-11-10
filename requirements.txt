@@ -6,7 +6,7 @@ langchain-openai
 langchain-weaviate
 langchain-google-genai
 openai
-rank-llm
+rank-llm==0.12.8
 sentence-transformers
 streamlit
 tiktoken
